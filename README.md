@@ -5,7 +5,7 @@
 ### Setting up the docker environment
 At the project's root folder, execute the following command : 
 ```sh
-    docker-compose up -d
+docker-compose up -d
 ```
 
 Once this command releases your terminal, enter the master container's bash using `docker-compose exec hadoop-master bash`.
