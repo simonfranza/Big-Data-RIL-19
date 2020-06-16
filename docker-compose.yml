@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  hadoop-master:
+    image: "liliasfaxi/spark-hadoop:hv-2.7.2"
+    hostname: hadoop-master
+    container_name: hadoop-master
+    ports:
+      - "50070:50070"
+      - "8088:8088"
+      - "7077:7077"
+      - "16010:16010"
+    tty: true
+
+  hadoop-slave1:
+    image: "liliasfaxi/spark-hadoop:hv-2.7.2"
+    hostname: hadoop-slave1
+    container_name: hadoop-slave1
+    ports:
+      - "8040:8042"
+    depends_on:
+      - "hadoop-master"
+    tty: true
+
+  hadoop-slave2:
+    image: "liliasfaxi/spark-hadoop:hv-2.7.2"
+    hostname: hadoop-slave2
+    container_name: hadoop-slave2
+    ports:
+      - "8041:8042"
+    depends_on:
+      - "hadoop-master"
+    tty: true
+
+networks:
+  default:
+    driver: "bridge"
