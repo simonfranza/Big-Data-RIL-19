@@ -8,7 +8,10 @@ At the project's root folder, execute the following command :
     docker-compose up -d
 ```
 
-Once this command releases your terminal, enter the master container's bash using `docker-compose exec hadoop-master bash`.
+Once this command releases your terminal, enter the master container's bash using
+```sh
+docker-compose exec hadoop-master bash
+```
 
 Once inside, execute the following commands in the same order as described :
 
@@ -75,3 +78,53 @@ spark-submit --class spark.streaming.Stream --master local --driver-memory 4g --
 ```
 
 Then, on your host, type `nc -lk 9999` and start typing messages!
+
+#### Processing
+The processing project takes a peek at the way one can use Spark to process data from a NoSql database, in this case HBase.
+
+> Note : this project requires a bit more time to set up than the other ones.
+
+Start your containers using this `docker-compose up -d` command.
+
+Once your containers are up and running, enter the master container's bash, and execute its setup commands (all of them are show down below).
+
+```sh
+# ================ In the hadoop-master container's bash ================
+# Start daemons
+start-hadoop.sh
+start-hbase.sh
+
+# Setup datasource
+hadoop fs -mkdir -p input # if the input directory is already present, no need to execute this line.
+hadoop fr -put purchases2.txt input
+
+# Setup NoSql database
+hbase shell
+    # Inside the newly opened HBase shell
+    create 'products','cf'
+    exit
+
+# Back to the container's bash
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.separator=',' -Dimporttsv.columns=HBASE_ROW_KEY,cf:date,cf:time,cf:town,cf:product,cf:price,cf:payment products input
+
+# To make sure the base was properly created
+hbase shell
+    get 'products','2000',{COLUMN => 'cf:town'}
+    exit
+```
+
+Once this is done, you can compile the `processing` project and send the jar to the container using the following command : 
+
+```sh
+# ================ In your host ================
+cd processing
+mvn package
+docker cp target/processing-1.jar hadoop-master:/root/processing-1.jar
+```
+
+We're getting there! Now that your container has the jar file, copy the HBase libraries inside Spark's jars folder, and launch the jar !
+```sh
+# ================ In the hadoop-master container's bash ================
+cp -r $HBASE_HOME/lib/* $SPARK_HOME/jars
+spark-submit  --class hbase.spark.HbaseSparkProcess --master yarn --deploy-mode client processing-1.jar
+```
