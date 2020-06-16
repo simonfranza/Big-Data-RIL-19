@@ -71,7 +71,7 @@ spark-submit --class spark.batch.WordCountTask --master local --driver-memory 4g
 The stream project is the same as the wordcount project, but instead of analysing data from a text file, it actually listens to a data stream that you can controle.
 To use it, type the following command inside the master container's bash :
 ```sh
-spark-submit --class spark.streaming.Stream --master local --driver-memory 4g --executor-memory 2g --executor-cores 1 stream-1.jar
+spark-submit --class spark.streaming.Stream --master local --driver-memory 4g --executor-memory 2g --executor-cores 1 stream-1.jar <ip address> <port>
 ```
 
 Then, on your host, type `nc -lk 9999` and start typing messages!
